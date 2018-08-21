@@ -9,7 +9,7 @@ and probably other models, from your Raspberry Pi.
 The code is based off of that of
 [433Utils](https://github.com/ninjablocks/433Utils), although it has been
 cleaned up and reduced to the bare bones minimum. It is also written in C
-rather than C++.
+rather than C++. Also changed so command line arguments are used rather than constants
 
 # Requirements
 
