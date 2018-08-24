@@ -3,79 +3,97 @@
 #include <string.h>
 #include <wiringPi.h>
 
-static const int pulse_length = 186;
-// This pin is not the first pin on the RPi GPIO header!
+// This pin is not the first pin on the RPi GPIO header
 // http://wiringpi.com/wp-content/uploads/2013/03/pins.pdf
-static const int pin = 0;
-// specific to your etekcity switches
-static const int switch_group = 0x14;
-// another known group would be 0x05, https://github.com/xillwillx/433Mhz/blob/master/send.php
+#define OUTPUT_PIN 0
+
+// There are 24 code bits in the on and off commands
+#define CODE_LENGTH_BITS 24
+
+// Standard pulse length seems to be 181 micro seconds, but my
+// switches don't always pick up that signel so I selected a
+// range to fire over
+#define PULSE_LENGTH_STD 181
+#define PULSE_LENGTH_MIN PULSE_LENGTH_STD - 5
+#define PULSE_LENGTH_MAX PULSE_LENGTH_STD + 5
+
+// The number of times to send the command, can be overridden from command line
+#define REPEAT_SEND 3
 
 static void send(int code, int bits, int send_count);
-static void transmit(int high_pulses, int low_pulses);
+static void transmit(int high_pulses, int low_pulses, int pulse_length);
 
 int main(int argc, char *argv[])
 {
-	if (argc < 3) {
-		fprintf(stderr, "missing required arguments: %s <switch_num> <on/off>\n", argv[0]);
-		return 1;
-	}
+  int repeat = REPEAT_SEND;
 
-	int switch_num = atoi(argv[1]);
-	if (switch_num < 1 || switch_num > 5)
-	{
-		fprintf(stderr, "invalid switch number: %d\n", switch_num);
-		return 1;
-	}
+  if (argc < 3)
+  {
+    fprintf(stderr, "missing required arguments: %s <switch id in hex> <on/off> <repeat>\n", argv[0]);
+    fprintf(stderr, "<repeat> is optional\n");
+    return 1;
+  }
 
-	// 0x5500 is the basic set of bits common to all codes
-	// switchgrp ---- ---- ---- on/off
-	// switch #    55 4433 2211
-	// 0000 0000 0101 0101 0000 0000
-	int code = 0x5500 | (switch_group << 16);
+//  int switch_id = atoi(argv[1]);
+  int switch_id = strtol(argv[1], NULL, 16);
 
-	if (strcmp(argv[2], "on") == 0) {
-		code |= 0x3;
-	} else {
-		code |= 0xc;
-	}
+  // Shunt the switch ID up by 4 bit to make room for the on/off command
+  int code = switch_id << 4;
 
-	// this puts a '11' in the right place
-	code |= 0x3 << ((switch_num + 1) * 2);
+  if (strcmp(argv[2], "on") == 0)
+  {
+    code |= 0x3;
+  }
+  else
+  {
+    code |= 0xc;
+  }
 
-	wiringPiSetup();
-	pinMode(pin, OUTPUT);
-	send(code, 24, 5);
-	return 0;
+  if (argc > 3)
+  {
+    repeat = atoi(argv[2]);
+  }
+
+  wiringPiSetup();
+  pinMode(OUTPUT_PIN, OUTPUT);
+  send(code, CODE_LENGTH_BITS, repeat);
+  return 0;
 }
 
 static void send(int code, int bits, int send_count)
 {
-	// send a sync bit
-	transmit(1, 31);
-	for (int repeat = 0; repeat < send_count; repeat++) {
-		for (int i = bits - 1; i >= 0; i--) {
-			int bit = (code >> i) & 1;
-			switch(bit) {
-				case 0:
-					// send 1 on, 3 off
-					transmit(1, 3);
-					break;
-				case 1:
-					// send 3 on, 1 off
-					transmit(3, 1);
-					break;
-			}
-		}
-		// send a sync bit
-		transmit(1, 31);
-	}
+  // For a range of pulse lengths...
+  for (int pulse_length = PULSE_LENGTH_MIN; pulse_length <= PULSE_LENGTH_MAX; pulse_length++)
+  {
+    // send a sync bit
+    transmit(1, 31, pulse_length);
+    for (int repeat = 0; repeat < send_count; repeat++)
+    {
+      for (int i = bits - 1; i >= 0; i--)
+      {
+        int bit = (code >> i) & 1;
+        switch(bit)
+        {
+          case 0:
+            // send 1 on, 3 off
+            transmit(1, 3, pulse_length);
+            break;
+          case 1:
+            // send 3 on, 1 off
+            transmit(3, 1, pulse_length);
+            break;
+        }
+      }
+      // send a sync bit
+      transmit(1, 31, pulse_length);
+    }
+  }
 }
 
-static void transmit(int high_pulses, int low_pulses)
+static void transmit(int high_pulses, int low_pulses, int pulse_length)
 {
-	digitalWrite(pin, HIGH);
-	delayMicroseconds(pulse_length * high_pulses);
-	digitalWrite(pin, LOW);
-	delayMicroseconds(pulse_length * low_pulses);
+  digitalWrite(OUTPUT_PIN, HIGH);
+  delayMicroseconds(pulse_length * high_pulses);
+  digitalWrite(OUTPUT_PIN, LOW);
+  delayMicroseconds(pulse_length * low_pulses);
 }
