@@ -18,7 +18,7 @@
 #define PULSE_LENGTH_MAX PULSE_LENGTH_STD + 5
 
 // The number of times to send the command, can be overridden from command line
-#define REPEAT_SEND 3
+#define REPEAT_SEND 5
 
 static void send(int code, int bits, int send_count);
 static void transmit(int high_pulses, int low_pulses, int pulse_length);
@@ -87,6 +87,8 @@ static void send(int code, int bits, int send_count)
       // send a sync bit
       transmit(1, 31, pulse_length);
     }
+    // Pause for a while after sending
+    delayMicroseconds(32 * pluse_length)
   }
 }
 
