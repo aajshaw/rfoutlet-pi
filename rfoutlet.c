@@ -88,7 +88,7 @@ static void send(int code, int bits, int send_count)
       transmit(1, 31, pulse_length);
     }
     // Pause for a while after sending
-    delayMicroseconds(32 * pluse_length);
+    delayMicroseconds(32 * pulse_length);
   }
 }
 
