@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
   if (argc > 3)
   {
-    repeat = atoi(argv[2]);
+    repeat = atoi(argv[3]);
   }
 
   wiringPiSetup();
