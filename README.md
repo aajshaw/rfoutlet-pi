@@ -2,8 +2,9 @@
 
 This is a super-simple standalone program for controlling the Etekcity Wireless
 Remote Control Electrical Outlet Switches,
-[5-pack](http://smile.amazon.com/Etekcity-Wireless-Electrical-Household-Appliances/dp/B00DQELHBS)
-or [3-pack](http://smile.amazon.com/Etekcity-Wireless-Electrical-Household-Appliances/dp/B00DQ2KGNK),
+[5-pack](http://smile.amazon.com/Etekcity-Wireless-Electrical-Household-Appliances/dp/B00DQELHBS), 
+[3-pack](http://smile.amazon.com/Etekcity-Wireless-Electrical-Household-Appliances/dp/B00DQ2KGNK) or
+with [British socket](https://www.amazon.co.uk/gp/product/B01FX9U0WA/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1)
 and probably other models, from your Raspberry Pi.
 
 The code is based off of that of
